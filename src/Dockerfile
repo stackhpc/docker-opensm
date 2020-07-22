@@ -1,4 +1,4 @@
-FROM jumanjiman/infiniband:7-20180414T1231-git-0c4397a
+FROM mellanox/mlnx_ofed_linux_5.0-2.1.8.0-centos7.7:latest
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -39,11 +39,7 @@ VOLUME $OSM_TMP_DIR
 # Replace this with --tmpfs option in docker 1.10 or higher.
 VOLUME $OSM_CACHE_DIR
 
-COPY . /
-
-RUN cd /etc/rdma && \
-    patch -p0 < rdma.conf.patch && \
-    patch -p0 < opensm.conf.patch
+COPY start.sh /
 
 ENTRYPOINT ["/start.sh"]
 
