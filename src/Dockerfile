@@ -1,7 +1,8 @@
-FROM mellanox/mlnx_ofed_linux_5.0-2.1.8.0-centos7.7:latest
+FROM centos:8
 
 ARG BUILD_DATE
 ARG VCS_REF
+ARG REPO=http://linux.mellanox.com/public/repo/mlnx_ofed/5.1-2.3.7.1/rhel8.2/mellanox_mlnx_ofed.repo
 
 LABEL \
     org.label-schema.name="jumanjiman/opensm" \
@@ -13,6 +14,11 @@ LABEL \
     org.label-schema.license="GPLv2" \
     org.label-schema.build-date=$BUILD_DATE \
     org.label-schema.vcs-ref=$VCS_REF
+
+RUN dnf install -y 'dnf-command(config-manager)'
+RUN dnf config-manager --add-repo http://linux.mellanox.com/public/repo/mlnx_ofed/5.1-2.3.7.1/rhel8.2/mellanox_mlnx_ofed.repo
+RUN rpm --import http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
+RUN dnf group install -y  "Infiniband Support"
 
 # The following environment variables control opensm behavior:
 #
