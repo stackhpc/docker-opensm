@@ -6,8 +6,7 @@ ARG REPO=http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/me
 
 LABEL \
     org.label-schema.name="jumanjiman/opensm" \
-    org.label-schema.description="Infiniband subnet manager based on NVIDIA
-OFED" \
+    org.label-schema.description="Infiniband subnet manager based on NVIDIA OFED" \
     org.label-schema.url="https://github.com/stackhpc/docker-opensm" \
     org.label-schema.vcs-url="https://github.com/stackhpc/docker-opensm.git" \
     org.label-schema.vcs-type="Git" \
@@ -18,10 +17,9 @@ OFED" \
     org.label-schema.modified-by="Tom Clark <tom@stackhpc.com>"
 
 RUN dnf install -y 'dnf-command(config-manager)' \
-    && dnf config-manager --add-repo
+    && dnf config-manager --add-repo \
 http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/mellanox_mlnx_ofed.repo \
-    && rpm --import
-http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox \
+    && rpm --import http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox \
     && dnf group install -y  "Infiniband Support" \
     && dnf clean all \
     && rm -rf /var/cache/dnf
