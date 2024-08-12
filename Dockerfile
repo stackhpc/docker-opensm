@@ -1,18 +1,28 @@
-FROM mellanox/mlnx_ofed_linux_5.0-2.1.8.0-centos7.7:latest
+FROM rockylinux:9
 
 ARG BUILD_DATE
 ARG VCS_REF
+ARG REPO=http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/mellanox_mlnx_ofed.repo
 
 LABEL \
     org.label-schema.name="jumanjiman/opensm" \
-    org.label-schema.description="Infiniband subnet manager" \
-    org.label-schema.url="https://github.com/jumanjihouse/docker-opensm" \
-    org.label-schema.vcs-url="https://github.com/jumanjihouse/docker-opensm.git" \
-    org.label-schema.docker.dockerfile="/src/Dockerfile" \
+    org.label-schema.description="Infiniband subnet manager based on NVIDIA OFED" \
+    org.label-schema.url="https://github.com/stackhpc/docker-opensm" \
+    org.label-schema.vcs-url="https://github.com/stackhpc/docker-opensm.git" \
     org.label-schema.vcs-type="Git" \
-    org.label-schema.license="GPLv2" \
+    org.label-schema.license="GPLv3" \
     org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.vcs-ref=$VCS_REF
+    org.label-schema.vcs-ref=$VCS_REF \
+    org.label-schema.original-repo-url="https://github.com/jumanjihouse/docker-opensm" \
+    org.label-schema.modified-by="Tom Clark <tom@stackhpc.com>"
+
+RUN dnf install -y 'dnf-command(config-manager)' \
+    && dnf config-manager --add-repo \
+http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/mellanox_mlnx_ofed.repo \
+    && rpm --import http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox \
+    && dnf group install -y  "Infiniband Support" \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
 
 # The following environment variables control opensm behavior:
 #
@@ -29,12 +39,12 @@ LABEL \
 # neighbors - stores a map of the GUIDs at either end of each link
 #             in the fabric
 #
-ENV OSM_TMP_DIR=/var/log/ \
+ENV OSM_LOG_DIR=/var/log/ \
     OSM_CACHE_DIR=/var/cache/opensm/
 
 # Allow to run container read-only and avoid this message:
 # osm_dump_qmap_to_file: cannot create file '/var/log//opensm-subnet.lst': Read-only file system
-VOLUME $OSM_TMP_DIR
+VOLUME $OSM_LOG_DIR
 
 # Replace this with --tmpfs option in docker 1.10 or higher.
 VOLUME $OSM_CACHE_DIR
@@ -44,6 +54,7 @@ COPY start.sh /
 ENTRYPOINT ["/start.sh"]
 
 # Our default runtime options.
+# '-p 15' gives openSM the highest priority
 # 0x07 is the sum of:
 # 0x01 - ERROR (error messages)
 # 0x02 - INFO (basic messages, low volume)
