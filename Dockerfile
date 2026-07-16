@@ -2,7 +2,8 @@ FROM rockylinux:9
 
 ARG BUILD_DATE
 ARG VCS_REF
-ARG REPO=http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/mellanox_mlnx_ofed.repo
+ARG TARGETARCH
+ARG VERSION=3.2.3
 
 LABEL \
     org.label-schema.name="jumanjiman/opensm" \
@@ -16,12 +17,18 @@ LABEL \
     org.label-schema.original-repo-url="https://github.com/jumanjihouse/docker-opensm" \
     org.label-schema.modified-by="Tom Clark <tom@stackhpc.com>"
 
-RUN dnf install -y 'dnf-command(config-manager)' \
-    && dnf config-manager --add-repo https://linux.mellanox.com/public/repo/doca/3.2.3/rhel9/x86_64/ \
-    && rpm --import https://linux.mellanox.com/public/repo/doca/3.2.3/rhel9/x86_64/RPM-GPG-KEY-doca \
-    && dnf install -y doca-ofed \
-    && dnf clean all \
-    && rm -rf /var/cache/dnf
+RUN set -eux; \
+    dnf install -y 'dnf-command(config-manager)'; \
+    case "${TARGETARCH}" in \
+      amd64) repo_arch=x86_64 ;; \
+      arm64) repo_arch=arm64-sbsa ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    dnf config-manager --add-repo "https://linux.mellanox.com/public/repo/doca/${VERSION}/rhel9/${repo_arch}/"; \
+    rpm --import "https://linux.mellanox.com/public/repo/doca/${VERSION}/rhel9/${repo_arch}/RPM-GPG-KEY-doca"; \
+    dnf install -y doca-ofed; \
+    dnf clean all; \
+    rm -rf /var/cache/dnf
 
 # The following environment variables control opensm behavior:
 #
