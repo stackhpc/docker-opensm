@@ -17,10 +17,9 @@ LABEL \
     org.label-schema.modified-by="Tom Clark <tom@stackhpc.com>"
 
 RUN dnf install -y 'dnf-command(config-manager)' \
-    && dnf config-manager --add-repo \
-http://linux.mellanox.com/public/repo/mlnx_ofed/latest-23.10/rhel9.4/mellanox_mlnx_ofed.repo \
-    && rpm --import http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox \
-    && dnf group install -y  "Infiniband Support" \
+    && dnf config-manager --add-repo https://linux.mellanox.com/public/repo/doca/3.2.3/rhel9/x86_64/ \
+    && rpm --import https://linux.mellanox.com/public/repo/doca/3.2.3/rhel9/x86_64/RPM-GPG-KEY-doca \
+    && dnf install -y doca-ofed \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
